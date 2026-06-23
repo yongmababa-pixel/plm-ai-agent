@@ -42,19 +42,48 @@ cd plm-ai-agent
 # 2. 安装依赖
 pip install -r requirements.txt
 
-# 3. 配置环境变量
-cp .env.example .env
-# 编辑 .env 填入 DeepSeek API Key
+# 3. 启动 GUI（无需 API Key 也能跑 Demo）
+python server.py
 
-# 4. 启动 Demo
-python demo.py
+# 4. 打开浏览器
+open http://localhost:8765
 ```
 
-## Demo 演示路径
+## Web GUI 演示
 
-输入选品需求 → 总管Agent拆解任务 → 4个专业Agent并行执行 → 汇总输出选品报告
+| 功能 | 说明 |
+|------|------|
+| 左侧面板 | 输入选品需求 + 成本上限 |
+| 实时步骤 | WebSocket 推送每个 Agent 执行状态 |
+| 结果展示 | 款式方案卡片 + 成本校验 + 爆款率预测 |
+| 暗色主题 | 与 PPT 方案文档风格统一 |
 
-**详见：[完整技术方案 PPT](docs/PLM-Agent-Solution.pdf)**
+> **无需 DEEPSEEK_API_KEY**：Demo 使用模拟数据即可完整跑通全流程。设置 `DEEPSEEK_API_KEY` 后启用真实 LLM 推理。
+
+## 技术架构
+
+```
+┌─────────────────────────────────────────────┐
+│          前端 GUI (HTML/CSS/JS)              │
+│     WebSocket 实时推送 Agent 执行步骤          │
+├─────────────────────────────────────────────┤
+│        FastAPI Backend (server.py)           │
+│    REST API + WebSocket + 静态文件服务         │
+├─────────────────────────────────────────────┤
+│         Multi-Agent 编排层                    │
+│   总管 → 趋势/PLM数据(并行) → 设计 → 供应链     │
+├─────────────────────────────────────────────┤
+│        Memory + MCP 工具层                   │
+│   三层记忆 + 4类MCP Server 骨架               │
+└─────────────────────────────────────────────┘
+```
+
+## CLI Demo
+
+```bash
+# 命令行版本（终端交互）
+python demo.py
+```
 
 ## 项目结构
 
