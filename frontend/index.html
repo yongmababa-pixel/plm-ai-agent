@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLM AI Agent — Multi-Agent 选品平台</title>
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--blue:#58a6ff;--green:#3fb950;--orange:#d2991d;--purple:#a371f7;--red:#f85149;--cyan:#39c5cf;--font:system-ui,-apple-system,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:20px;font-weight:700;color:var(--blue)}
+.header .badges{display:flex;gap:8px}
+.badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-blue{background:rgba(88,166,255,.15);color:var(--blue)}
+.badge-green{background:rgba(63,185,80,.15);color:var(--green)}
+.badge-purple{background:rgba(163,113,247,.15);color:var(--purple)}
+.badge-orange{background:rgba(210,153,29,.15);color:var(--orange)}
+.main{display:grid;grid-template-columns:480px 1fr;gap:0;height:calc(100vh - 57px)}
+.panel{background:var(--bg2);border-right:1px solid var(--border);padding:24px;overflow-y:auto}
+.panel h2{font-size:16px;color:var(--purple);margin-bottom:16px}
+.panel label{display:block;font-size:13px;color:var(--text2);margin:12px 0 4px}
+.panel textarea,.panel input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:var(--font);font-size:14px;resize:vertical}
+.panel textarea:focus,.panel input:focus{outline:none;border-color:var(--blue)}
+.panel textarea{min-height:100px}
+.panel .btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px;transition:all .2s}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{opacity:.9}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.content{padding:24px 32px;overflow-y:auto}
+.content h2{font-size:18px;color:var(--cyan);margin-bottom:20px}
+/* Agent Steps */
+.steps{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.step{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;opacity:.4;transition:all .3s}
+.step.active{opacity:1;border-color:var(--blue)}
+.step.done{opacity:1;border-color:var(--green)}
+.step-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.step-info{flex:1}
+.step-info .name{font-size:14px;font-weight:600}
+.step-info .msg{font-size:12px;color:var(--text2);margin-top:2px}
+.step-status{font-size:12px;color:var(--text2)}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Results */
+.results{display:none}
+.results.show{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:16px 0}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .2s}
+.card:hover{border-color:var(--blue)}
+.card h4{font-size:16px;color:var(--blue);margin-bottom:8px}
+.card .tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.card .cost{font-size:20px;font-weight:700;margin:12px 0}
+.card .cost.ok{color:var(--green)}.card .cost.over{color:var(--red)}
+.card .hit{font-size:13px;color:var(--orange)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+.summary-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center}
+.summary-item .num{font-size:28px;font-weight:800;color:var(--blue)}
+.summary-item .label{font-size:12px;color:var(--text2);margin-top:4px}
+.empty{text-align:center;padding:80px 20px;color:var(--text2)}
+.empty .icon{font-size:64px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🏗️ PLM AI Agent — Multi-Agent 选品平台</h1>
+  <div class="badges">
+    <span class="badge badge-blue">LangGraph</span>
+    <span class="badge badge-green">MCP Protocol</span>
+    <span class="badge badge-purple">5 Agents</span>
+    <span class="badge badge-orange">3-Layer Memory</span>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Left: Input Panel -->
+  <div class="panel">
+    <h2>📋 选品需求</h2>
+    <label>需求描述</label>
+    <textarea id="prompt">生成3款2026夏季辣妹牛仔短裤，匹配近3个月平台热销版型，成本控制≤35元</textarea>
+    <label>成本上限（元）</label>
+    <input type="number" id="costLimit" value="35" min="10" max="500">
+    <button class="btn btn-primary" id="submitBtn" onclick="startDesign()">🚀 开始 AI 选品</button>
+    <p style="margin-top:8px;font-size:11px;color:var(--text2)">Powered by DeepSeek + LangGraph + MCP</p>
+  </div>
+
+  <!-- Right: Results -->
+  <div class="content" id="content">
+    <div class="empty" id="emptyState">
+      <div class="icon">🤖</div>
+      <p style="font-size:18px;font-weight:600;color:var(--text)">等待选品需求</p>
+      <p style="margin-top:8px">在左侧输入需求，AI Agent 将自动完成全链路选品</p>
+    </div>
+
+    <!-- Agent Execution Steps -->
+    <div class="steps" id="steps" style="display:none">
+      <div class="step" id="step1"><div class="step-icon">🧠</div><div class="step-info"><div class="name">总管 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
+      <div class="step" id="step2"><div class="step-icon">🔍</div><div class="step-info"><div class="name">趋势 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
+      <div class="step" id="step3"><div class="step-icon">📊</div><div class="step-info"><div class="name">PLM 数据 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
+      <div class="step" id="step4"><div class="step-icon">🎨</div><div class="step-info"><div class="name">设计 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
+      <div class="step" id="step5"><div class="step-icon">💰</div><div class="step-info"><div class="name">供应链 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+      <h2>📊 选品结果</h2>
+      <div class="summary" id="summary"></div>
+      <h3 style="margin:20px 0 12px;color:var(--purple)">🎨 款式方案</h3>
+      <div class="cards" id="cards"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8765';
+const steps = {};
+['step1','step2','step3','step4','step5'].forEach((id,i) => steps[i+1] = document.getElementById(id));
+
+function setStep(n, status, msg){
+  const s = steps[n];
+  if(!s) return;
+  s.className = 'step ' + status;
+  const msgEl = s.querySelector('.msg');
+  const statEl = s.querySelector('.step-status');
+  msgEl.textContent = msg;
+  if(status === 'active') statEl.innerHTML = '<div class="spinner"></div>';
+  else if(status === 'done') statEl.textContent = '✅';
+  else statEl.textContent = '';
+}
+
+async function startDesign(){
+  const prompt = document.getElementById('prompt').value.trim();
+  const costLimit = parseFloat(document.getElementById('costLimit').value) || 35;
+  if(!prompt) return;
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('steps').style.display = 'flex';
+  document.getElementById('results').classList.remove('show');
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Agent 执行中...';
+
+  // Reset steps
+  Object.values(steps).forEach(s => {s.className='step';s.querySelector('.step-status').textContent='';});
+
+  try{
+    const ws = new WebSocket(`ws://localhost:8765/ws/design`);
+    
+    ws.onopen = () => ws.send(JSON.stringify({prompt, cost_limit: costLimit, category: '牛仔'}));
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if(data.error){ alert('Error: '+data.error); btn.disabled=false; btn.textContent='🚀 开始 AI 选品'; return; }
+      
+      if(data.step){
+        const n = data.step;
+        if(data.status === 'running') setStep(n, 'active', data.message);
+        else if(data.status === 'done'){
+          setStep(n, 'done', data.message);
+          if(data.final) showResults(data.final);
+        }
+      }
+    };
+
+    ws.onclose = () => { btn.disabled = false; btn.textContent = '🚀 开始 AI 选品'; };
+    ws.onerror = () => { 
+      btn.disabled = false; btn.textContent = '🚀 开始 AI 选品'; 
+      setStep(1, 'done', '后端未启动。请先运行: python server.py');
+    };
+  }catch(e){
+    btn.disabled = false;
+    btn.textContent = '🚀 开始 AI 选品';
+    alert('连接失败: ' + e.message);
+  }
+}
+
+function showResults(data){
+  document.getElementById('results').classList.add('show');
+  const designs = data.designs || [];
+  const within = designs.filter(d => d.within_budget);
+  
+  // Summary
+  document.getElementById('summary').innerHTML = `
+    <div class="summary-item"><div class="num">${designs.length}</div><div class="label">生成方案</div></div>
+    <div class="summary-item"><div class="num" style="color:var(--green)">${within.length}</div><div class="label">预算内</div></div>
+    <div class="summary-item"><div class="num" style="color:var(--red)">${designs.length - within.length}</div><div class="label">超预算</div></div>
+    <div class="summary-item"><div class="num" style="color:var(--orange)">${within[0]?.predicted_hit_rate || '-'}%</div><div class="label">最佳爆款率</div></div>
+  `;
+  
+  // Cards
+  document.getElementById('cards').innerHTML = designs.map(d => `
+    <div class="card">
+      <h4>${d.name || '设计方案'}</h4>
+      <div class="tags">
+        ${(d.details||[]).map(t => `<span class="badge badge-purple">${t}</span>`).join('')}
+        <span class="badge badge-blue">${d.style||''}</span>
+      </div>
+      <div class="cost ${d.within_budget?'ok':'over'}">¥${d.estimated_cost?.toFixed(1)||'?'} ${d.within_budget?'✅ 预算内':'❌ 超预算'}</div>
+      <div class="hit">🔥 预计爆款率: ${d.predicted_hit_rate||'?'}%</div>
+      ${d.cost_breakdown ? `<div style="margin-top:8px;font-size:11px;color:var(--text2)">
+        面料: ¥${d.cost_breakdown.fabric} | 辅料: ¥${d.cost_breakdown.accessories} | 加工: ¥${d.cost_breakdown.processing}
+      </div>` : ''}
+      ${d.suggestion ? `<div style="margin-top:8px;font-size:11px;color:var(--orange)">💡 ${d.suggestion}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && e.ctrlKey) startDesign();
+});
+</script>
+</body>
+</html>
