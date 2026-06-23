@@ -21,17 +21,24 @@ from agent.supply_chain import SupplyChainAgent
 from memory.session import SessionMemory
 from memory.long_term import LongTermMemory
 
-from langchain_openai import ChatOpenAI
+# LLM is optional - demo works with mock data without API key
+try:
+    from langchain_openai import ChatOpenAI
+    HAS_LLM = True
+except ImportError:
+    HAS_LLM = False
 
 app = FastAPI(title="PLM AI Agent", version="1.0.0")
 
 # Global agents
-llm = ChatOpenAI(
-    model="deepseek-chat",
-    api_key=os.getenv("DEEPSEEK_API_KEY", "demo"),
-    base_url="https://api.deepseek.com/v1",
-    temperature=0.3
-) if os.getenv("DEEPSEEK_API_KEY") else None
+llm = None
+if HAS_LLM and os.getenv("DEEPSEEK_API_KEY"):
+    llm = ChatOpenAI(
+        model="deepseek-chat",
+        api_key=os.getenv("DEEPSEEK_API_KEY"),
+        base_url="https://api.deepseek.com/v1",
+        temperature=0.3
+    )
 
 planner = PlannerAgent(llm) if llm else None
 trend_agent = TrendAgent()
@@ -56,11 +63,11 @@ async def health():
 @app.post("/api/design")
 async def create_design(req: DesignRequest):
     """同步API：提交选品需求，返回完整报告"""
-    if not planner:
-        return {"error": "请设置 DEEPSEEK_API_KEY 环境变量"}
-    
-    # Step 1: Plan
-    plan = await planner.plan(req.prompt, req.cost_limit)
+    # Use mock plan if no LLM
+    if planner:
+        plan = await planner.plan(req.prompt, req.cost_limit)
+    else:
+        plan = {"category": req.category, "subtasks": [], "cost_limit": req.cost_limit, "season": "夏季", "style_keywords": ["热销版型", "流行趋势"]}
     
     # Step 2-3: Parallel trend + plm_data
     trend_data, plm_data_result = await asyncio.gather(
