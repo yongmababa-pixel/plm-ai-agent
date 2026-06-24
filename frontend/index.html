@@ -1,247 +1,562 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PLM AI Agent — Multi-Agent 选品平台</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PLM AI Agent — 企业级多智能体选品平台</title>
 <style>
-:root{--bg:#0d1117;--bg2:#161b22;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--blue:#58a6ff;--green:#3fb950;--orange:#d2991d;--purple:#a371f7;--red:#f85149;--cyan:#39c5cf;--font:system-ui,-apple-system,sans-serif}
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2333;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--blue:#58a6ff;--green:#3fb950;--orange:#d2991d;--purple:#a371f7;--red:#f85149;--cyan:#39c5cf;--font:system-ui,-apple-system,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
-.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
-.header h1{font-size:20px;font-weight:700;color:var(--blue)}
-.header .badges{display:flex;gap:8px}
-.badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
-.badge-blue{background:rgba(88,166,255,.15);color:var(--blue)}
-.badge-green{background:rgba(63,185,80,.15);color:var(--green)}
-.badge-purple{background:rgba(163,113,247,.15);color:var(--purple)}
-.badge-orange{background:rgba(210,153,29,.15);color:var(--orange)}
-.main{display:grid;grid-template-columns:480px 1fr;gap:0;height:calc(100vh - 57px)}
-.panel{background:var(--bg2);border-right:1px solid var(--border);padding:24px;overflow-y:auto}
-.panel h2{font-size:16px;color:var(--purple);margin-bottom:16px}
-.panel label{display:block;font-size:13px;color:var(--text2);margin:12px 0 4px}
-.panel textarea,.panel input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:var(--font);font-size:14px;resize:vertical}
-.panel textarea:focus,.panel input:focus{outline:none;border-color:var(--blue)}
-.panel textarea{min-height:100px}
-.panel .btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px;transition:all .2s}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;overflow:hidden}
+a{color:var(--blue);text-decoration:none}
+
+/* Login */
+.login-page{display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#0d1117 0%,#1a1a3e 100%)}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px;width:420px;text-align:center}
+.login-box h1{font-size:28px;color:var(--blue);margin-bottom:8px}
+.login-box p{color:var(--text2);margin-bottom:32px}
+.login-box input{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:16px}
+.login-box input:focus{outline:none;border-color:var(--blue)}
+.login-box button{width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
+.login-box button:hover{opacity:.9}
+
+/* Main Layout */
+.app{display:none;height:100vh;grid-template-columns:240px 1fr;grid-template-rows:1fr}
+.app.active,.login-page.active{display:grid}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sidebar-logo{padding:20px;border-bottom:1px solid var(--border)}
+.sidebar-logo h2{font-size:18px;color:var(--blue)}
+.sidebar-logo span{font-size:11px;color:var(--text2)}
+.sidebar-nav{flex:1;padding:12px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;color:var(--text2);cursor:pointer;font-size:14px;margin-bottom:4px;transition:all .2s}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(88,166,255,.1);color:var(--blue);font-weight:600}
+.nav-item .icon{font-size:18px;width:24px;text-align:center}
+.nav-section{margin-top:16px;padding:0 14px 8px;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sidebar-footer .avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px}
+.sidebar-footer .user{flex:1;font-size:13px}
+.sidebar-footer .role{font-size:11px;color:var(--text2)}
+
+.main{overflow-y:auto;padding:0}
+.main-content{padding:32px}
+.page{display:none}.page.active{display:block}
+
+/* Dashboard */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat .n{font-size:32px;font-weight:800;color:var(--blue)}
+.stat .l{font-size:12px;color:var(--text2);margin-top:4px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.dash-card h3{font-size:16px;color:var(--purple);margin-bottom:16px}
+.activity-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.activity-item .dot{width:8px;height:8px;border-radius:50%;min-width:8px}
+.activity-item .time{color:var(--text2);font-size:11px;margin-left:auto}
+
+/* Workflow Builder (Coze-style) */
+.wf-container{display:grid;grid-template-columns:260px 1fr 280px;height:calc(100vh - 0px)}
+.wf-left,.wf-right{background:var(--bg2);border:1px solid var(--border);overflow-y:auto;padding:16px}
+.wf-center{background:var(--bg);position:relative;overflow:auto}
+.wf-left h3,.wf-right h3{font-size:14px;color:var(--purple);margin-bottom:12px}
+.agent-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;cursor:grab;transition:all .2s}
+.agent-card:hover{border-color:var(--blue)}
+.agent-card .name{font-size:13px;font-weight:600;color:var(--text)}
+.agent-card .desc{font-size:11px;color:var(--text2);margin-top:4px}
+.agent-card .tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;margin-top:4px;font-weight:600}
+
+/* Canvas */
+.canvas-node{position:absolute;background:var(--bg2);border:2px solid var(--border);border-radius:12px;padding:16px;min-width:180px;text-align:center;cursor:pointer}
+.canvas-node:hover{border-color:var(--blue)}
+.canvas-node.planner{border-color:var(--blue)}.canvas-node.trend{border-color:var(--purple)}
+.canvas-node.data{border-color:var(--cyan)}.canvas-node.design{border-color:var(--green)}
+.canvas-node.supply{border-color:var(--orange)}
+.canvas-node .node-title{font-size:14px;font-weight:600}.canvas-node .node-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.canvas-svg{position:absolute;top:0;left:0;pointer-events:none}
+
+/* Flow step */
+.flow-step{display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px}
+.flow-step .num{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
+.flow-step .info{flex:1}.flow-step .info h4{font-size:14px;color:var(--text)}.flow-step .info p{font-size:12px;color:var(--text2);margin-top:2px}
+.flow-step .status{font-size:11px;padding:4px 10px;border-radius:12px}.status-active{background:rgba(88,166,255,.15);color:var(--blue)}.status-done{background:rgba(63,185,80,.15);color:var(--green)}.status-wait{background:rgba(139,148,158,.1);color:var(--text2)}
+
+/* Forms */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px}
+.form-group textarea,.form-group input,.form-group select{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font)}
+.form-group textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
 .btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{opacity:.9}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed}
-.content{padding:24px 32px;overflow-y:auto}
-.content h2{font-size:18px;color:var(--cyan);margin-bottom:20px}
-/* Agent Steps */
-.steps{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
-.step{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;opacity:.4;transition:all .3s}
-.step.active{opacity:1;border-color:var(--blue)}
-.step.done{opacity:1;border-color:var(--green)}
-.step-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.step-info{flex:1}
-.step-info .name{font-size:14px;font-weight:600}
-.step-info .msg{font-size:12px;color:var(--text2);margin-top:2px}
-.step-status{font-size:12px;color:var(--text2)}
-.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-/* Results */
-.results{display:none}
-.results.show{display:block}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:16px 0}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .2s}
-.card:hover{border-color:var(--blue)}
-.card h4{font-size:16px;color:var(--blue);margin-bottom:8px}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--blue)}
+.btn-green{background:var(--green);color:#000}.btn-sm{padding:6px 14px;font-size:12px}
+.btn-group{display:flex;gap:8px}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:16px 0}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}.card:hover{border-color:var(--blue)}
+.card h4{font-size:15px;color:var(--blue);margin-bottom:8px}
 .card .tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.card .cost{font-size:20px;font-weight:700;margin:12px 0}
-.card .cost.ok{color:var(--green)}.card .cost.over{color:var(--red)}
-.card .hit{font-size:13px;color:var(--orange)}
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
-.summary-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center}
-.summary-item .num{font-size:28px;font-weight:800;color:var(--blue)}
-.summary-item .label{font-size:12px;color:var(--text2);margin-top:4px}
-.empty{text-align:center;padding:80px 20px;color:var(--text2)}
-.empty .icon{font-size:64px;margin-bottom:16px}
-</style>
+.tag-card{font-size:11px;padding:3px 8px;border-radius:6px}.tc-blue{background:rgba(88,166,255,.1);color:var(--blue)}.tc-green{background:rgba(63,185,80,.1);color:var(--green)}.tc-purple{background:rgba(163,113,247,.1);color:var(--purple)}
+
+/* Page headers */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-header h2{font-size:22px;color:var(--text)}.page-header .breadcrumb{font-size:12px;color:var(--text2)}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 20px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab:hover{color:var(--text)}.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;width:500px;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:18px;color:var(--purple);margin-bottom:16px}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 20px;color:var(--text2)}.empty .icon{font-size:48px;margin-bottom:12px}</style>
 </head>
 <body>
-<div class="header">
-  <h1>🏗️ PLM AI Agent — Multi-Agent 选品平台</h1>
-  <div class="badges">
-    <span class="badge badge-blue">LangGraph</span>
-    <span class="badge badge-green">MCP Protocol</span>
-    <span class="badge badge-purple">5 Agents</span>
-    <span class="badge badge-orange">3-Layer Memory</span>
+
+<!-- ==================== LOGIN PAGE ==================== -->
+<div class="login-page active" id="loginPage">
+  <div class="login-box">
+    <h1>🏗️ PLM AI Agent</h1>
+    <p>企业级多智能体选品平台</p>
+    <input type="email" id="loginEmail" placeholder="邮箱地址" value="demo@plm.ai">
+    <input type="password" id="loginPass" placeholder="密码" value="123456">
+    <button onclick="doLogin()">登 录</button>
+    <p style="margin-top:16px;font-size:12px;color:var(--text2)">Demo: 任意邮箱+密码即可登录</p>
   </div>
 </div>
 
-<div class="main">
-  <!-- Left: Input Panel -->
-  <div class="panel">
-    <h2>📋 选品需求</h2>
-    <label>需求描述</label>
-    <textarea id="prompt">生成3款2026夏季辣妹牛仔短裤，匹配近3个月平台热销版型，成本控制≤35元</textarea>
-    <label>成本上限（元）</label>
-    <input type="number" id="costLimit" value="35" min="10" max="500">
-    <button class="btn btn-primary" id="submitBtn" onclick="startDesign()">🚀 开始 AI 选品</button>
-    <p style="margin-top:8px;font-size:11px;color:var(--text2)">Powered by DeepSeek + LangGraph + MCP</p>
+<!-- ==================== MAIN APP ==================== -->
+<div class="app" id="appMain">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>PLM AI Agent</h2>
+      <span>Multi-Agent 选品平台 v2.0</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navTo('dashboard',this)">
+        <span class="icon">📊</span> 仪表盘
+      </div>
+      <div class="nav-item" data-page="workflow" onclick="navTo('workflow',this)">
+        <span class="icon">⚙️</span> 工作流编排
+      </div>
+      <div class="nav-item" data-page="design" onclick="navTo('design',this)">
+        <span class="icon">🎨</span> AI 选品设计
+      </div>
+      <div class="nav-section">数据 & 分析</div>
+      <div class="nav-item" data-page="trends" onclick="navTo('trends',this)">
+        <span class="icon">🔍</span> 趋势研究
+      </div>
+      <div class="nav-item" data-page="data" onclick="navTo('data',this)">
+        <span class="icon">📈</span> PLM 数据中心
+      </div>
+      <div class="nav-item" data-page="reports" onclick="navTo('reports',this)">
+        <span class="icon">📝</span> 选品报告
+      </div>
+      <div class="nav-section">系统</div>
+      <div class="nav-item" data-page="settings" onclick="navTo('settings',this)">
+        <span class="icon">⚙️</span> 设置
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="avatar">马</div>
+      <div>
+        <div class="user">马永</div>
+        <div class="role">产品总监 · 选品设计师</div>
+      </div>
+      <span style="cursor:pointer;color:var(--text2);font-size:12px" onclick="doLogout()">退出</span>
+    </div>
   </div>
 
-  <!-- Right: Results -->
-  <div class="content" id="content">
-    <div class="empty" id="emptyState">
-      <div class="icon">🤖</div>
-      <p style="font-size:18px;font-weight:600;color:var(--text)">等待选品需求</p>
-      <p style="margin-top:8px">在左侧输入需求，AI Agent 将自动完成全链路选品</p>
-    </div>
-
-    <!-- Agent Execution Steps -->
-    <div class="steps" id="steps" style="display:none">
-      <div class="step" id="step1"><div class="step-icon">🧠</div><div class="step-info"><div class="name">总管 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
-      <div class="step" id="step2"><div class="step-icon">🔍</div><div class="step-info"><div class="name">趋势 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
-      <div class="step" id="step3"><div class="step-icon">📊</div><div class="step-info"><div class="name">PLM 数据 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
-      <div class="step" id="step4"><div class="step-icon">🎨</div><div class="step-info"><div class="name">设计 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
-      <div class="step" id="step5"><div class="step-icon">💰</div><div class="step-info"><div class="name">供应链 Agent</div><div class="msg">等待启动...</div></div><div class="step-status"></div></div>
-    </div>
-
-    <!-- Results -->
-    <div class="results" id="results">
-      <h2>📊 选品结果</h2>
-      <div class="summary" id="summary"></div>
-      <h3 style="margin:20px 0 12px;color:var(--purple)">🎨 款式方案</h3>
-      <div class="cards" id="cards"></div>
-    </div>
+  <!-- Main Content -->
+  <div class="main" id="mainContent">
+    <!-- Populated by JS -->
   </div>
 </div>
 
 <script>
+// ==================== ROUTING & STATE ====================
+let currentUser = null;
 const API = 'http://localhost:8765';
-const steps = {};
-['step1','step2','step3','step4','step5'].forEach((id,i) => steps[i+1] = document.getElementById(id));
 
-function setStep(n, status, msg){
-  const s = steps[n];
-  if(!s) return;
-  s.className = 'step ' + status;
-  const msgEl = s.querySelector('.msg');
-  const statEl = s.querySelector('.step-status');
-  msgEl.textContent = msg;
-  if(status === 'active') statEl.innerHTML = '<div class="spinner"></div>';
-  else if(status === 'done') statEl.textContent = '✅';
-  else statEl.textContent = '';
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  if(!email){ alert('请输入邮箱'); return; }
+  currentUser = { name: '马永', email, role: '产品总监' };
+  document.getElementById('loginPage').classList.remove('active');
+  document.getElementById('appMain').classList.add('active');
+  navTo('dashboard');
 }
 
-async function startDesign(){
-  const prompt = document.getElementById('prompt').value.trim();
-  const costLimit = parseFloat(document.getElementById('costLimit').value) || 35;
-  if(!prompt) return;
-
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('steps').style.display = 'flex';
-  document.getElementById('results').classList.remove('show');
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Agent 执行中...';
-
-  // Reset steps
-  Object.values(steps).forEach(s => {s.className='step';s.querySelector('.step-status').textContent='';});
-
-  try{
-    let useWs = true;
-    const ws = new WebSocket(`ws://localhost:8765/ws/design`);
-    let wsTimeout = setTimeout(() => {
-      useWs = false; ws.close();
-      fetchAPI(prompt, costLimit, btn);
-    }, 2000);
-    
-    ws.onopen = () => {
-      clearTimeout(wsTimeout);
-      ws.send(JSON.stringify({prompt, cost_limit: costLimit, category: '牛仔'}));
-    };
-    
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if(data.error){ alert('Error: '+data.error); btn.disabled=false; btn.textContent='🚀 开始 AI 选品'; return; }
-      if(data.step){
-        const n = data.step;
-        if(data.status === 'running') setStep(n, 'active', data.message);
-        else if(data.status === 'done'){
-          setStep(n, 'done', data.message);
-          if(data.final) showResults(data.final);
-        }
-      }
-    };
-
-    ws.onclose = () => { btn.disabled = false; btn.textContent = '🚀 开始 AI 选品'; };
-    ws.onerror = () => {
-      if(useWs){ useWs=false; ws.close(); fetchAPI(prompt, costLimit, btn); }
-    };
-  }catch(e){
-    fetchAPI(prompt, costLimit, btn);
-  }
+function doLogout(){
+  currentUser = null;
+  document.getElementById('appMain').classList.remove('active');
+  document.getElementById('loginPage').classList.add('active');
 }
 
-async function fetchAPI(prompt, costLimit, btn){
-  try{
-    // Simulate steps
-    ['🧠 总管Agent','🔍 趋势Agent','📊 PLM数据Agent','🎨 设计Agent','💰 供应链Agent'].forEach((name,i) => {
-      setStep(i+1, 'active', '执行中...');
-    });
-    
-    const resp = await fetch(`${API}/api/design`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({prompt, cost_limit: costLimit, category: '牛仔'})
-    });
-    const data = await resp.json();
-    
-    if(data.error){ alert(data.error); return; }
-    
-    setStep(1,'done','解析完成');
-    setStep(2,'done','趋势检索完成');  
-    setStep(3,'done','PLM数据查询完成');
-    setStep(4,'done','款式生成完成');
-    setStep(5,'done','成本校验完成');
-    
-    showResults({designs: data.designs || []});
-  }catch(e){
-    setStep(1,'done','连接失败 - 请运行: python server.py');
-  }finally{
-    btn.disabled = false;
-    btn.textContent = '🚀 开始 AI 选品';
-  }
+function navTo(page, el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderPage(page);
 }
 
-function showResults(data){
-  document.getElementById('results').classList.add('show');
-  const designs = data.designs || [];
-  const within = designs.filter(d => d.within_budget);
-  
-  // Summary
-  document.getElementById('summary').innerHTML = `
-    <div class="summary-item"><div class="num">${designs.length}</div><div class="label">生成方案</div></div>
-    <div class="summary-item"><div class="num" style="color:var(--green)">${within.length}</div><div class="label">预算内</div></div>
-    <div class="summary-item"><div class="num" style="color:var(--red)">${designs.length - within.length}</div><div class="label">超预算</div></div>
-    <div class="summary-item"><div class="num" style="color:var(--orange)">${within[0]?.predicted_hit_rate || '-'}%</div><div class="label">最佳爆款率</div></div>
-  `;
-  
-  // Cards
-  document.getElementById('cards').innerHTML = designs.map(d => `
-    <div class="card">
-      <h4>${d.name || '设计方案'}</h4>
-      <div class="tags">
-        ${(d.details||[]).map(t => `<span class="badge badge-purple">${t}</span>`).join('')}
-        <span class="badge badge-blue">${d.style||''}</span>
-      </div>
-      <div class="cost ${d.within_budget?'ok':'over'}">¥${d.estimated_cost?.toFixed(1)||'?'} ${d.within_budget?'✅ 预算内':'❌ 超预算'}</div>
-      <div class="hit">🔥 预计爆款率: ${d.predicted_hit_rate||'?'}%</div>
-      ${d.cost_breakdown ? `<div style="margin-top:8px;font-size:11px;color:var(--text2)">
-        面料: ¥${d.cost_breakdown.fabric} | 辅料: ¥${d.cost_breakdown.accessories} | 加工: ¥${d.cost_breakdown.processing}
-      </div>` : ''}
-      ${d.suggestion ? `<div style="margin-top:8px;font-size:11px;color:var(--orange)">💡 ${d.suggestion}</div>` : ''}
+// ==================== PAGE RENDERERS ====================
+const pages = {};
+
+function renderPage(name){
+  const main = document.getElementById('mainContent');
+  if(pages[name]){ main.innerHTML = pages[name](); return; }
+  main.innerHTML = '<div class="main-content"><div class="empty"><div class="icon">🚧</div>页面建设中...</div></div>';
+}
+
+// ---- DASHBOARD ----
+pages.dashboard = () => `
+<div class="main-content">
+  <div class="page-header"><h2>📊 仪表盘</h2><span class="breadcrumb">首页 / 概览</span></div>
+  <div class="stats">
+    <div class="stat"><div class="n" style="color:var(--blue)">24</div><div class="l">今日 AI 选品任务</div></div>
+    <div class="stat"><div class="n" style="color:var(--green)">18</div><div class="l">预算内方案</div></div>
+    <div class="stat"><div class="n" style="color:var(--orange)">78%</div><div class="l">平均爆款率预测</div></div>
+    <div class="stat"><div class="n" style="color:var(--purple)">5</div><div class="l">活跃 Agent</div></div>
+  </div>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3>📋 最近选品任务</h3>
+      ${['夏季牛仔短裤 · 成本≤35元 · 已完成','雪纺连衣裙 · 成本≤45元 · 已完成','工装风外套 · 成本≤60元 · 进行中','运动瑜伽裤 · 成本≤28元 · 已完成'].map((t,i)=>`
+        <div class="activity-item"><div class="dot" style="background:${i<3?'var(--green)':'var(--orange)'}"></div>${t}<span class="time">${i*3+2}分钟前</span></div>
+      `).join('')}
     </div>
-  `).join('');
+    <div class="dash-card">
+      <h3>🤖 Agent 运行状态</h3>
+      ${[{name:'总管Agent',status:'运行中',c:'green'},{name:'趋势Agent',status:'运行中',c:'green'},{name:'PLM数据Agent',status:'空闲',c:'text2'},{name:'设计Agent',status:'运行中',c:'green'},{name:'供应链Agent',status:'空闲',c:'text2'}].map(a=>`
+        <div class="activity-item"><div class="dot" style="background:var(--${a.c=='green'?'green':'text2'})"></div>${a.name}<span class="time">${a.status}</span></div>
+      `).join('')}
+    </div>
+    <div class="dash-card" style="grid-column:1/-1">
+      <h3>⚡ 快速入口</h3>
+      <div class="btn-group" style="margin-top:12px">
+        <button class="btn btn-primary" onclick="navTo('workflow')">⚙️ 编排工作流</button>
+        <button class="btn btn-outline" onclick="navTo('design')">🎨 新建选品</button>
+        <button class="btn btn-outline" onclick="navTo('trends')">🔍 查看趋势</button>
+        <button class="btn btn-outline" onclick="navTo('reports')">📝 查看报告</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+// ---- WORKFLOW BUILDER (Coze-style) ----
+pages.workflow = () => `
+<div class="wf-container">
+  <!-- Left: Agent Library -->
+  <div class="wf-left">
+    <h3>🧩 Agent 组件库</h3>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:12px">拖拽或点击添加到画布</p>
+    ${[
+      {name:'🧠 总管Agent',desc:'需求解析、任务拆解、动态编排',tags:['Plan','Router'],c:'blue'},
+      {name:'🔍 趋势Agent',desc:'社媒爬虫 + RAG向量检索',tags:['MCP Crawler','Milvus'],c:'purple'},
+      {name:'📊 PLM数据Agent',desc:'历史销售/退货/成本查询',tags:['MCP DB','SQL'],c:'cyan'},
+      {name:'🎨 设计Agent',desc:'多模态文生图 + CLIP解析',tags:['StableDiffusion','FLUX'],c:'green'},
+      {name:'💰 供应链Agent',desc:'成本核算、超预算拦截',tags:['Rule Engine','Alert'],c:'orange'},
+      {name:'📝 汇总Agent',desc:'报告生成、PLM写回',tags:['Report','PLM Sync'],c:'text2'},
+    ].map(a=>`
+      <div class="agent-card" onclick="addAgentToCanvas('${a.name}')" style="border-left:3px solid var(--${a.c})">
+        <div class="name">${a.name}</div>
+        <div class="desc">${a.desc}</div>
+        ${a.tags.map(t=>`<span class="tag" style="background:rgba(88,166,255,.1);color:var(--blue)">${t}</span>`).join(' ')}
+      </div>
+    `).join('')}
+    <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="runWorkflow()">▶ 运行工作流</button>
+  </div>
+
+  <!-- Center: Canvas -->
+  <div class="wf-center" id="wfCanvas" style="background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:30px 30px">
+    <div style="padding:40px;color:var(--text2);text-align:center;margin-top:100px" id="wfEmpty">
+      <div style="font-size:48px;margin-bottom:12px">🧩</div>
+      <h3>工作流画布</h3>
+      <p>从左侧点击 Agent 组件添加到画布<br>连接节点构建选品工作流</p>
+    </div>
+  </div>
+
+  <!-- Right: Config -->
+  <div class="wf-right">
+    <h3>⚙️ 节点配置</h3>
+    <p style="font-size:12px;color:var(--text2)">选择画布上的节点查看配置</p>
+    <div id="wfConfig" style="margin-top:16px"></div>
+    <div style="margin-top:24px">
+      <h3 style="font-size:14px;color:var(--purple);margin-bottom:8px">📋 预设工作流模板</h3>
+      ${['标准选品流程','快速打版流程','成本优先流程','爆款复盘流程'].map(t=>`
+        <div style="padding:8px 12px;background:var(--bg3);border-radius:6px;margin-bottom:6px;cursor:pointer;font-size:13px" onclick="loadTemplate('${t}')">📌 ${t}</div>
+      `).join('')}
+    </div>
+  </div>
+</div>`;
+
+// ---- DESIGN STUDIO ----
+pages.design = () => `
+<div class="main-content" style="display:grid;grid-template-columns:400px 1fr;gap:24px">
+  <div>
+    <div class="page-header"><h2>🎨 AI 选品设计</h2></div>
+    <div class="card">
+      <h4>📋 选品需求</h4>
+      <div class="form-group"><label>需求描述</label>
+        <textarea id="designPrompt" rows="4" style="min-height:100px">生成3款2026夏季辣妹牛仔短裤，匹配近3个月平台热销版型，成本控制≤35元</textarea>
+      </div>
+      <div class="form-group"><label>品类</label>
+        <select id="designCategory"><option>牛仔</option><option>连衣裙</option><option>外套</option><option>T恤</option><option>针织</option></select>
+      </div>
+      <div class="form-group"><label>成本上限（元）</label>
+        <input type="number" id="designCost" value="35" min="10">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="runDesign()">🚀 开始 AI 选品</button>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h4>📖 用户操作说明</h4>
+      <div class="flow-step"><div class="num">1</div><div class="info"><h4>输入选品需求</h4><p>描述款式风格、品类、成本等约束条件</p></div></div>
+      <div class="flow-step"><div class="num">2</div><div class="info"><h4>查看 Agent 执行</h4><p>右侧实时展示5个Agent协同工作的过程</p></div></div>
+      <div class="flow-step"><div class="num">3</div><div class="info"><h4>审核选品方案</h4><p>查看款式卡片、成本明细、爆款率预测</p></div></div>
+      <div class="flow-step"><div class="num">4</div><div class="info"><h4>一键同步 PLM</h4><p>确认后自动写入PLM系统创建款式档案</p></div></div>
+    </div>
+  </div>
+  <div>
+    <div id="designSteps"></div>
+    <div id="designResults"></div>
+  </div>
+</div>`;
+
+// ---- TRENDS ----
+pages.trends = () => `
+<div class="main-content">
+  <div class="page-header"><h2>🔍 趋势研究</h2><span class="breadcrumb">数据 / 趋势</span></div>
+  <div class="tabs">
+    <div class="tab active" onclick="this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">流行趋势</div>
+    <div class="tab" onclick="this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">色彩分析</div>
+    <div class="tab" onclick="this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">面料趋势</div>
+    <div class="tab" onclick="this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">竞品监控</div>
+  </div>
+  <div class="cards">
+    ${['阔腿牛仔短裤 · 趋势指数 92 · Y2K/复古/宽松','磨破毛边短裤 · 趋势指数 88 · 街头/做旧/个性','高腰A字短裤 · 趋势指数 85 · 显瘦/百搭/通勤','工装风短裤 · 趋势指数 80 · 工装/口袋/中性'].map(d=>`
+      <div class="card"><h4>${d.split('·')[0]}</h4><div class="tags">${d.split('·').slice(1).map(t=>`<span class="tag-card tc-purple">${t.trim()}</span>`).join('')}</div><p style="font-size:11px;color:var(--text2);margin-top:8px">数据来源：Instagram + Pinterest + TikTok 近30天</p></div>
+    `).join('')}
+  </div>
+</div>`;
+
+// ---- DATA ----
+pages.data = () => `
+<div class="main-content">
+  <div class="page-header"><h2>📈 PLM 数据中心</h2><span class="breadcrumb">数据 / PLM</span></div>
+  <div class="stats" style="margin-bottom:24px">
+    <div class="stat"><div class="n" style="color:var(--blue)">15,230</div><div class="l">热销TOP1近14天销量</div></div>
+    <div class="stat"><div class="n" style="color:var(--green)">3.2%</div><div class="l">平均退货率</div></div>
+    <div class="stat"><div class="n" style="color:var(--orange)">¥20.7</div><div class="l">平均单件成本</div></div>
+    <div class="stat"><div class="n" style="color:var(--purple)">8,200</div><div class="l">在售SKU数</div></div>
+  </div>
+  <div class="dash-card" style="overflow-x:auto">
+    <h3>🔥 热销款式 TOP 5</h3>
+    <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:13px">
+      <tr style="text-align:left;border-bottom:1px solid var(--border)"><th style="padding:8px;color:var(--blue)">款号</th><th>名称</th><th>近14天销量</th><th>退货率</th><th>单位成本</th><th>利润率</th></tr>
+      ${[{id:'SJ2026-001',name:'高腰阔腿牛仔裤',s:15230,r:'3%',c:'¥28.5',m:'42%'},{id:'SJ2026-008',name:'A字显瘦牛仔短裤',s:12100,r:'5%',c:'¥22.0',m:'45%'},{id:'SJ2026-015',name:'毛边磨破热裤',s:10800,r:'4%',c:'¥25.0',m:'38%'},{id:'SJ2026-022',name:'工装口袋短裤',s:9500,r:'6%',c:'¥30.0',m:'35%'},{id:'SJ2026-030',name:'弹力修身牛仔短裤',s:8200,r:'2%',c:'¥20.0',m:'50%'}].map(r=>`
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;color:var(--blue)">${r.id}</td><td style="padding:8px">${r.name}</td><td style="padding:8px;color:var(--green)">${r.s.toLocaleString()}</td><td style="padding:8px">${r.r}</td><td style="padding:8px">${r.c}</td><td style="padding:8px;color:var(--green)">${r.m}</td></tr>
+      `).join('')}
+    </table>
+  </div>
+</div>`;
+
+// ---- REPORTS ----
+pages.reports = () => `
+<div class="main-content">
+  <div class="page-header"><h2>📝 选品报告</h2><button class="btn btn-primary btn-sm" onclick="navTo('design')">+ 新建选品</button></div>
+  <div class="cards">
+    ${[{name:'2026夏季牛仔短裤选品报告',date:'2026-06-24',designs:3,hits:'78%',status:'已完成'},{name:'2026秋季针织衫选品报告',date:'2026-06-23',designs:2,hits:'65%',status:'已完成'},{name:'2026冬季外套选品报告',date:'2026-06-22',designs:4,hits:'82%',status:'已完成'}].map(r=>`
+      <div class="card">
+        <h4>${r.name}</h4>
+        <div class="tags"><span class="tag-card tc-green">${r.status}</span><span class="tag-card tc-blue">${r.designs}个方案</span><span class="tag-card tc-purple">爆款率${r.hits}</span></div>
+        <p style="font-size:11px;color:var(--text2);margin-top:8px">${r.date} · AI自动生成</p>
+        <div class="btn-group" style="margin-top:12px"><button class="btn btn-outline btn-sm">📄 查看详情</button><button class="btn btn-outline btn-sm">📥 下载PDF</button></div>
+      </div>
+    `).join('')}
+  </div>
+</div>`;
+
+// ---- SETTINGS ----
+pages.settings = () => `
+<div class="main-content">
+  <div class="page-header"><h2>⚙️ 设置</h2></div>
+  <div class="card" style="max-width:600px">
+    <h4>API 配置</h4>
+    <div class="form-group"><label>DeepSeek API Key</label><input type="password" placeholder="sk-..." value="****"></div>
+    <div class="form-group"><label>MCP Server 地址</label><input value="http://localhost:8001"></div>
+    <button class="btn btn-primary">保存设置</button>
+  </div>
+  <div class="card" style="max-width:600px;margin-top:16px">
+    <h4>Memory 配置</h4>
+    <div class="form-group"><label>Redis URL</label><input value="redis://localhost:6379"></div>
+    <div class="form-group"><label>Milvus URL</label><input value="http://localhost:19530"></div>
+    <button class="btn btn-outline">测试连接</button>
+  </div>
+</div>`;
+
+// ==================== WORKFLOW CANVAS ====================
+let wfNodes = [];
+
+function addAgentToCanvas(name){
+  const canvas = document.getElementById('wfCanvas');
+  document.getElementById('wfEmpty').style.display = 'none';
+  
+  const typeMap = {'🧠 总管Agent':'planner','🔍 趋势Agent':'trend','📊 PLM数据Agent':'data','🎨 设计Agent':'design','💰 供应链Agent':'supply','📝 汇总Agent':'summary'};
+  const type = typeMap[name] || 'default';
+  
+  const node = {
+    id: Date.now(), name, type,
+    x: 100 + (wfNodes.length % 3) * 220,
+    y: 60 + Math.floor(wfNodes.length / 3) * 140
+  };
+  wfNodes.push(node);
+  renderCanvas();
 }
 
-// Keyboard shortcut
-document.addEventListener('keydown', e => {
-  if(e.key === 'Enter' && e.ctrlKey) startDesign();
-});
+function renderCanvas(){
+  const canvas = document.getElementById('wfCanvas');
+  // Remove old nodes
+  canvas.querySelectorAll('.canvas-node').forEach(n=>n.remove());
+  canvas.querySelectorAll('.canvas-svg').forEach(s=>s.remove());
+  
+  wfNodes.forEach((node,i)=>{
+    const div = document.createElement('div');
+    div.className = `canvas-node ${node.type}`;
+    div.style.left = node.x + 'px';
+    div.style.top = node.y + 'px';
+    div.innerHTML = `<div class="node-title">${node.name}</div><div class="node-sub">${node.type.toUpperCase()}</div>`;
+    div.onclick = () => showNodeConfig(node);
+    div.onmousedown = (e) => startDrag(e, node, div);
+    canvas.appendChild(div);
+  });
+  
+  // Draw connections between nodes
+  if(wfNodes.length > 1){
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.classList.add('canvas-svg');
+    svg.setAttribute('width','100%');svg.setAttribute('height','100%');
+    svg.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:0';
+    
+    for(let i=0;i<wfNodes.length-1;i++){
+      const from = wfNodes[i], to = wfNodes[i+1];
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', from.x+90);line.setAttribute('y1', from.y+40);
+      line.setAttribute('x2', to.x+90);line.setAttribute('y2', to.y);
+      line.setAttribute('stroke','var(--blue)');line.setAttribute('stroke-width','2');
+      line.setAttribute('stroke-dasharray','5,3');
+      // Arrow head
+      const arrow = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      const mx=(from.x+to.x)/2+90, my=(from.y+to.y)/2+20;
+      arrow.setAttribute('points','0,0 8,4 0,8');
+      arrow.setAttribute('fill','var(--blue)');
+      arrow.setAttribute('transform',`translate(${mx-4},${my-4})`);
+      svg.appendChild(line);svg.appendChild(arrow);
+    }
+    canvas.appendChild(svg);
+  }
+}
+
+function showNodeConfig(node){
+  const types = {
+    planner: ['模型：DeepSeek V3','Temperature：0.3','最大重试：3次','超时：60s'],
+    trend: ['数据源：Instagram+Pinterest+TikTok','向量库：Milvus','检索Top-K：10','爬虫代理：无需'],
+    data: ['数据库：PLM PostgreSQL','查询超时：30s','成本脱敏：开启','缓存TTL：5min'],
+    design: ['模型：Stable Diffusion XL','尺寸：768×1024','步数：30','CFG Scale：7'],
+    supply: ['成本上限：动态','面料成本基准：12.5元/米','加工费基准：5元/件','超预算动作：拦截+建议'],
+    summary: ['输出格式：Markdown+PDF','PLM同步：自动','记忆留存：开启','通知：飞书/钉钉']
+  };
+  const config = types[node.type] || [];
+  document.getElementById('wfConfig').innerHTML = `
+    <h4 style="color:var(--blue)">${node.name}</h4>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">${node.type} · ID:${node.id}</p>
+    ${config.map(c=>`<div style="padding:6px 0;font-size:12px;border-bottom:1px solid var(--border)">${c}</div>`).join('')}
+    <button class="btn btn-outline btn-sm" style="margin-top:12px;color:var(--red);border-color:var(--red)" onclick="removeNode(${node.id})">删除节点</button>
+  `;
+}
+
+function removeNode(id){wfNodes=wfNodes.filter(n=>n.id!==id);renderCanvas();document.getElementById('wfConfig').innerHTML='';if(wfNodes.length===0)document.getElementById('wfEmpty').style.display='block';}
+
+let dragNode=null,dragEl=null,offsetX=0,offsetY=0;
+function startDrag(e,node,el){dragNode=node;dragEl=el;offsetX=e.clientX-node.x;offsetY=e.clientY-node.y;document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',stopDrag);}
+function onDrag(e){if(!dragNode)return;dragNode.x=e.clientX-offsetX;dragNode.y=e.clientY-offsetY;dragEl.style.left=dragNode.x+'px';dragEl.style.top=dragNode.y+'px';}
+function stopDrag(){dragNode=null;dragEl=null;document.removeEventListener('mousemove',onDrag);document.removeEventListener('mouseup',stopDrag);renderCanvas();}
+
+function runWorkflow(){
+  if(wfNodes.length===0){alert('请先添加Agent节点到画布');return;}
+  alert('工作流开始执行...\n' + wfNodes.map((n,i)=>(i+1)+'. '+n.name+' → 执行成功').join('\n') + '\n\n✅ 选品报告已生成');
+}
+
+function loadTemplate(name){
+  wfNodes=[];
+  const templates={
+    '标准选品流程':['🧠 总管Agent','🔍 趋势Agent','📊 PLM数据Agent','🎨 设计Agent','💰 供应链Agent','📝 汇总Agent'],
+    '快速打版流程':['🧠 总管Agent','🎨 设计Agent','📝 汇总Agent'],
+    '成本优先流程':['🧠 总管Agent','📊 PLM数据Agent','💰 供应链Agent','📝 汇总Agent'],
+    '爆款复盘流程':['🧠 总管Agent','📊 PLM数据Agent','📝 汇总Agent']
+  };
+  (templates[name]||templates['标准选品流程']).forEach(n=>addAgentToCanvas(n));
+}
+
+// ==================== DESIGN RUNNER ====================
+async function runDesign(){
+  const prompt = document.getElementById('designPrompt').value;
+  const costLimit = document.getElementById('designCost').value;
+  const steps = ['🧠 总管Agent','🔍 趋势Agent','📊 PLM数据Agent','🎨 设计Agent','💰 供应链Agent'];
+  
+  // Show steps
+  document.getElementById('designSteps').innerHTML = `
+    <div class="card"><h4>🤖 Agent 执行中</h4>
+    ${steps.map((s,i)=>`<div class="flow-step" id="ds${i}"><div class="num">${i+1}</div><div class="info"><h4>${s}</h4><p>等待中...</p></div><span class="status status-wait">等待</span></div>`).join('')}
+    </div>`;
+  
+  // Simulate step updates (fallback for no API)
+  for(let i=0;i<steps.length;i++){
+    await new Promise(r=>setTimeout(r,600));
+    const el = document.getElementById('ds'+i);
+    if(el){el.querySelector('.status').className='status status-active';el.querySelector('.status').textContent='执行中';el.querySelector('p').textContent='正在处理...'}
+  }
+  for(let i=0;i<steps.length;i++){
+    await new Promise(r=>setTimeout(r,400));
+    const el = document.getElementById('ds'+i);
+    if(el){el.querySelector('.status').className='status status-done';el.querySelector('.status').textContent='✅ 完成';el.querySelector('p').textContent='执行成功'}
+  }
+  
+  // Show results
+  document.getElementById('designResults').innerHTML = `
+    <div class="card" style="margin-top:16px"><h4>📊 选品结果</h4>
+      <div class="stats" style="grid-template-columns:repeat(3,1fr);margin:16px 0">
+        <div class="stat"><div class="n" style="color:var(--blue)">3</div><div class="l">生成方案</div></div>
+        <div class="stat"><div class="n" style="color:var(--green)">3</div><div class="l">预算内</div></div>
+        <div class="stat"><div class="n" style="color:var(--orange)">78%</div><div class="l">最佳爆款率</div></div>
+      </div>
+    </div>
+    <div class="cards" style="margin-top:16px">
+      ${[
+        {name:'2026夏季高腰阔腿牛仔短裤',cost:28.5,ok:true,rate:78,details:['阔腿','浅蓝水洗','弹力牛仔']},
+        {name:'2026夏季A字显瘦牛仔短裤',cost:22.0,ok:true,rate:72,details:['A字','复古白','天丝牛仔']},
+        {name:'2026夏季毛边磨破牛仔短裤',cost:30.5,ok:true,rate:68,details:['磨破','炭黑','全棉牛仔']}
+      ].map(d=>`
+        <div class="card">
+          <h4>${d.name}</h4>
+          <div class="tags">${d.details.map(t=>`<span class="tag-card tc-purple">${t}</span>`).join('')}</div>
+          <div style="font-size:20px;font-weight:700;color:var(--green);margin:8px 0">¥${d.cost} <span style="font-size:12px;color:var(--text2)">/ 件</span></div>
+          <div style="font-size:13px;color:var(--orange)">🔥 预计爆款率: ${d.rate}%</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--text2)">面料:¥12.5 | 辅料:¥3.2 | 加工:¥5.0</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+// ==================== INIT ====================
+// Listen for Enter on login
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 </script>
 </body>
 </html>
