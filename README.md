@@ -1,118 +1,108 @@
-# PLM AI Agent — 服装行业多智能体选品平台
+# PLM AI Agent — 企业级多智能体选品平台
 
-> **SHEIN 服装 PLM + Multi-Agent + MCP 协议完整技术方案与开源 Demo**
+> **Multi-Agent + MCP + 三层Memory | LangGraph 编排 | 6大行业自适应 Tech Pack**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
-[![Go 1.21+](https://img.shields.io/badge/Go-1.21+-00ADD8.svg)](https://go.dev)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Agent%20Orchestration-purple.svg)](https://langchain-ai.github.io/langgraph/)
-[![MCP](https://img.shields.io/badge/MCP-Tool%20Protocol-orange.svg)](https://modelcontextprotocol.io)
+[![Version](https://img.shields.io/badge/version-3.2-blue.svg)](https://github.com/yongmababa-pixel/plm-ai-agent)
+[![Stars](https://img.shields.io/github/stars/yongmababa-pixel/plm-ai-agent?style=social)](https://github.com/yongmababa-pixel/plm-ai-agent)
 
-## 项目简介
+## 🎯 项目定位
 
-用 **Multi-Agent 智能体** 打通服装 PLM 全流程，完成「趋势采集 → 选品定款 → 款式生成 → 成本校验 → 热销复盘 → 数据回流迭代模型」全自动化。
+一个**企业级 AI 选品平台**，展示 Multi-Agent 架构在 B2B 电商选品场景的完整落地。不是玩具 Demo，而是按照真实业务流设计的可演示系统。
 
-**核心能力：替代 70% 人工重复工作，提升上新爆款率 30%+。**
+## ✨ 核心特性
 
-## 技术架构
+| 特性 | 说明 |
+|------|------|
+| 🤖 **5 Agent 协同** | 总管规划 / 趋势检索 / PLM数据 / 多模态设计 / 供应链校验 |
+| 🏭 **6 大行业自适应** | 服装鞋包 / 电子配件 / 家居用品 / 美妆个护 / 运动户外 / 食品饮料 |
+| 📋 **结构化 Tech Pack** | 选行业后自动切换专属字段，从结构化工单生成 AI Prompt |
+| 💰 **真实供应链数据** | 物料编码体系 · 5 种数据采集渠道 · 更新频率 · MOQ 限制 |
+| 👥 **4 角色权限** | 选品设计师 / 供应链专员 / 运营复盘 / AI 管理员 |
+| 🧩 **工作流编排** | Coze 风格拖拽画布 · 4 套预设模板 · SVG 连线可视化 |
+| 🔌 **MCP 工具协议** | 数据库 / 多模态 / 爬虫 / PLM 同步 四类 MCP Server |
+| 🧠 **三层 Memory** | 工作记忆 / 会话记忆 / 长期事件记忆 |
+| 📱 **移动端适配** | 响应式布局 · 滑出菜单 · 手机可用 |
+
+## 🏗️ 技术架构
 
 ```
-┌─────────────────────────────────────────────┐
-│           前端业务应用层                      │
-│    Go Dashboard · React AI面板 · Celery队列   │
-├─────────────────────────────────────────────┤
-│         Multi-Agent 编排层 (核心)             │
-│  LangGraph · 5类Agent · 三层Memory · AutoGen  │
-├─────────────────────────────────────────────┤
-│           MCP 标准化工具层                    │
-│  数据库MCP · 多模态MCP · 爬虫MCP · PLM同步MCP │
-├─────────────────────────────────────────────┤
-│         底层数据 & 模型算力层                  │
-│  PostgreSQL · Milvus · DeepSeek · 数据治理     │
-└─────────────────────────────────────────────┘
+前端 (Single Page App)
+  ├── 4 角色权限体系（菜单隔离 · 数据隔离）
+  ├── 16 个功能页面（工业级亮色蓝白主题）
+  └── WebSocket 实时通信
+
+后端 (FastAPI + Python)
+  ├── LangGraph 多智能体编排
+  ├── MCP Server 协议骨架
+  └── 三层 Memory 存储
+
+数据层
+  ├── 向量数据库 (Milvus) — RAG 检索
+  ├── 关系数据库 (PostgreSQL) — PLM 业务数据
+  └── 对象存储 (S3) — 设计图缓存
 ```
 
-## 快速开始
+## 🚀 快速开始
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/YOUR_USER/plm-ai-agent.git
+git clone https://github.com/yongmababa-pixel/plm-ai-agent.git
 cd plm-ai-agent
 
 # 2. 安装依赖
-pip install -r requirements.txt
+pip install fastapi uvicorn python-dotenv
 
-# 3. 启动 GUI（无需 API Key 也能跑 Demo）
+# 3. 启动服务（无需 API Key 也能跑 Demo）
 python server.py
 
 # 4. 打开浏览器
-open http://localhost:8765
+http://localhost:8765
 ```
 
-## Web GUI 演示
+## 👥 角色与用户故事
 
-| 功能 | 说明 |
+| 角色 | 核心工作流 |
 |------|------|
-| 左侧面板 | 输入选品需求 + 成本上限 |
-| 实时步骤 | WebSocket 推送每个 Agent 执行状态 |
-| 结果展示 | 款式方案卡片 + 成本校验 + 爆款率预测 |
-| 暗色主题 | 与 PPT 方案文档风格统一 |
+| 🎨 **选品设计师** | Tech Pack 结构化输入 → Agent 协同选品 → 审核方案 → 提交审批 |
+| 📦 **供应链专员** | 成本审批 → 物料 BOM 管理 → 工厂产能管控 → MOQ 拦截 |
+| 📊 **运营复盘** | 销售数据看板 → 预测 vs 实际对比 → 生成复盘报告 |
+| ⚙️ **AI 管理员** | 工作流编排 → Agent 监控 → MCP 配置 → 用户权限管理 |
 
-> **无需 DEEPSEEK_API_KEY**：Demo 使用模拟数据即可完整跑通全流程。设置 `DEEPSEEK_API_KEY` 后启用真实 LLM 推理。
+> 完整用户故事文档：[USER_STORIES.md](docs/USER_STORIES.md)
 
-## 技术架构
-
-```
-┌─────────────────────────────────────────────┐
-│          前端 GUI (HTML/CSS/JS)              │
-│     WebSocket 实时推送 Agent 执行步骤          │
-├─────────────────────────────────────────────┤
-│        FastAPI Backend (server.py)           │
-│    REST API + WebSocket + 静态文件服务         │
-├─────────────────────────────────────────────┤
-│         Multi-Agent 编排层                    │
-│   总管 → 趋势/PLM数据(并行) → 设计 → 供应链     │
-├─────────────────────────────────────────────┤
-│        Memory + MCP 工具层                   │
-│   三层记忆 + 4类MCP Server 骨架               │
-└─────────────────────────────────────────────┘
-```
-
-## CLI Demo
-
-```bash
-# 命令行版本（终端交互）
-python demo.py
-```
-
-## 项目结构
+## 📂 项目结构
 
 ```
 plm-ai-agent/
-├── agent/           # Multi-Agent 编排引擎 (LangGraph)
-│   ├── planner.py   # 总管规划Agent
-│   ├── trend.py     # 趋势检索Agent
-│   ├── plm_data.py  # PLM数据Agent
-│   ├── design.py    # 多模态生成Agent
-│   └── supply_chain.py  # 供应链校验Agent
-├── mcp-servers/     # MCP 标准化工具服务
-│   ├── db_server.py        # 数据库MCP Server
-│   ├── multimodal_server.py # 多模态MCP Server
-│   ├── crawler_server.py   # 爬虫MCP Server
-│   └── plm_sync_server.py  # PLM同步MCP Server
-├── memory/          # 三层Memory系统
-│   ├── working.py   # 工作记忆
-│   ├── session.py   # 会话记忆 (Redis)
-│   └── long_term.py # 长期记忆 (Mem0 + Milvus)
-├── frontend/        # 前端Demo
-│   ├── dashboard.go # Go监控仪表盘
-│   └── ai-panel/    # React AI选品面板
-├── data/            # 示例数据 & 训练集
-├── docs/            # 完整技术方案PPT
-├── demo.py          # Demo入口
-└── docker-compose.yml
+├── agent/              # 5 个 Agent 模块
+│   ├── planner.py      # 🧠 总管规划 Agent
+│   ├── trend.py        # 🔍 趋势检索 Agent
+│   ├── plm_data.py     # 📊 PLM 数据 Agent
+│   ├── design.py       # 🎨 多模态设计 Agent
+│   └── supply_chain.py # 💰 供应链校验 Agent
+├── memory/             # 三层 Memory 架构
+│   ├── session.py      # 会话记忆 (Redis)
+│   └── long_term.py    # 长期事件记忆 (Mem0 + Milvus)
+├── mcp-servers/        # MCP 工具协议骨架
+├── frontend/           # 前端 SPA
+│   └── index.html      # 单文件 4角色16页面完整应用
+├── docs/               # 文档
+│   ├── PLM-Agent-Solution.pdf    # 56 页技术方案 PPT
+│   ├── 星谷云-面谈自我介绍.pptx   # 面谈 PPT
+│   ├── 星谷云-面谈准备手册.pdf    # 面谈准备手册
+│   └── USER_STORIES.md           # 完整用户故事文档
+├── server.py           # FastAPI 入口
+├── demo.py             # CLI Demo
+└── requirements.txt
 ```
 
-## License
+## 📄 相关文档
+
+- [56 页完整技术方案 PPT](docs/PLM-Agent-Solution.pdf)
+- [15 个用户故事 & 操作场景](docs/USER_STORIES.md)
+- [MIT 开源协议](LICENSE)
+
+## 📝 License
 
 MIT © 2026 马永
