@@ -142,14 +142,21 @@ async function startDesign(){
   Object.values(steps).forEach(s => {s.className='step';s.querySelector('.step-status').textContent='';});
 
   try{
+    let useWs = true;
     const ws = new WebSocket(`ws://localhost:8765/ws/design`);
+    let wsTimeout = setTimeout(() => {
+      useWs = false; ws.close();
+      fetchAPI(prompt, costLimit, btn);
+    }, 2000);
     
-    ws.onopen = () => ws.send(JSON.stringify({prompt, cost_limit: costLimit, category: '牛仔'}));
+    ws.onopen = () => {
+      clearTimeout(wsTimeout);
+      ws.send(JSON.stringify({prompt, cost_limit: costLimit, category: '牛仔'}));
+    };
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if(data.error){ alert('Error: '+data.error); btn.disabled=false; btn.textContent='🚀 开始 AI 选品'; return; }
-      
       if(data.step){
         const n = data.step;
         if(data.status === 'running') setStep(n, 'active', data.message);
@@ -161,14 +168,42 @@ async function startDesign(){
     };
 
     ws.onclose = () => { btn.disabled = false; btn.textContent = '🚀 开始 AI 选品'; };
-    ws.onerror = () => { 
-      btn.disabled = false; btn.textContent = '🚀 开始 AI 选品'; 
-      setStep(1, 'done', '后端未启动。请先运行: python server.py');
+    ws.onerror = () => {
+      if(useWs){ useWs=false; ws.close(); fetchAPI(prompt, costLimit, btn); }
     };
   }catch(e){
+    fetchAPI(prompt, costLimit, btn);
+  }
+}
+
+async function fetchAPI(prompt, costLimit, btn){
+  try{
+    // Simulate steps
+    ['🧠 总管Agent','🔍 趋势Agent','📊 PLM数据Agent','🎨 设计Agent','💰 供应链Agent'].forEach((name,i) => {
+      setStep(i+1, 'active', '执行中...');
+    });
+    
+    const resp = await fetch(`${API}/api/design`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt, cost_limit: costLimit, category: '牛仔'})
+    });
+    const data = await resp.json();
+    
+    if(data.error){ alert(data.error); return; }
+    
+    setStep(1,'done','解析完成');
+    setStep(2,'done','趋势检索完成');  
+    setStep(3,'done','PLM数据查询完成');
+    setStep(4,'done','款式生成完成');
+    setStep(5,'done','成本校验完成');
+    
+    showResults({designs: data.designs || []});
+  }catch(e){
+    setStep(1,'done','连接失败 - 请运行: python server.py');
+  }finally{
     btn.disabled = false;
     btn.textContent = '🚀 开始 AI 选品';
-    alert('连接失败: ' + e.message);
   }
 }
 
