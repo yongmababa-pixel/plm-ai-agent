@@ -164,7 +164,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border)}tr:las
 
 <script>
 // ========== STATE ==========
-let cr='designer',cu='马永',cp='dashboard',designRunning=false,wfNodes=[];
+let cr='designer',cu='马永',cp='',designRunning=false,wfNodes=[];
 
 // ========== TOAST ==========
 function toast(msg,type='info'){const t=document.getElementById('toastContainer');const d=document.createElement('div');d.className='toast-item '+type;d.innerHTML=(type==='success'?'✅ ':(type==='error'?'❌ ':'ℹ️ '))+msg;t.appendChild(d);setTimeout(()=>{d.style.animation='fadeOut .3s ease';setTimeout(()=>d.remove(),300)},3000)}
@@ -301,7 +301,6 @@ food:{name:'食品饮料',fields:[
 function onIndustryChange(){const ind=document.getElementById('dindustry').value,cfg=indConfig[ind],el=document.getElementById('dDynamicFields');let h='';cfg.fields.forEach(f=>{h+=`<div class="form-g"><label>${f.label}</label>`;if(f.type==='select'){h+=`<select id="df-${f.id}">${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`}else if(f.type==='checkbox'){h+=`<div style="display:flex;gap:6px;flex-wrap:wrap">${f.opts.map((o,i)=>`<label style="font-size:12px;cursor:pointer"><input type="checkbox" class="dchk-${f.id}" value="${o}" ${i<2?'checked':''}> ${o}</label>`).join('')}</div>`}else{h+=`<input id="df-${f.id}" value="${f.opts[0]||''}">`}h+='</div>'});el.innerHTML=h}
 
 // ========== INIT ==========
-buildSidebar();
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 </script>
 </body>
