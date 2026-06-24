@@ -16,12 +16,12 @@ a{color:var(--blue);text-decoration:none}
 .login-box h1{font-size:28px;color:#1e3a5f;margin-bottom:4px}
 .login-box .sub{color:var(--text2);margin-bottom:24px;font-size:14px}
 .login-box .roles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.role-card{padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;text-align:center;transition:all .2s}
-.role-card:hover{border-color:var(--blue);background:var(--bg)}
-.role-card.selected{border-color:var(--blue);background:#eff6ff}
-.role-card .icon{font-size:28px;display:block;margin-bottom:4px}
-.role-card .name{font-size:13px;font-weight:600;color:var(--text)}
-.role-card .desc{font-size:10px;color:var(--text2)}
+.role-card{padding:16px 12px;border:2px solid var(--border);border-radius:14px;cursor:pointer;text-align:center;transition:all .2s}
+.role-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 4px 16px rgba(37,99,235,.12)}
+.role-card.selected{border-color:var(--blue);background:linear-gradient(135deg,#eff6ff,#dbeafe);box-shadow:0 2px 12px rgba(37,99,235,.15)}
+.role-card .icon{font-size:36px;display:block;margin-bottom:6px;line-height:1.2}
+.role-card .name{font-size:14px;font-weight:700;color:var(--text)}
+.role-card .desc{font-size:11px;color:var(--text2);margin-top:2px}
 .login-box input{width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:16px;font-family:var(--font);color:var(--text);background:var(--bg)}
 .login-box input:focus{outline:none;border-color:var(--blue)}
 .login-box .btn-login{width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s}
